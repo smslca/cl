@@ -175,7 +175,29 @@ def build_frames(con):
         GROUP BY ALL ORDER BY rvol DESC
     """).df()
 
-    return breadth, sectors, shortlist, radar
+    return breadth, sectors, finalize_shortlist(shortlist), radar
+
+
+def finalize_shortlist(shortlist: pd.DataFrame) -> pd.DataFrame:
+    """Grade, sort and cap the shortlist — the exact list shown and persisted."""
+    if shortlist.empty:
+        return shortlist
+
+    def _grade(r):
+        g = {2: "A+", 1: "A"}.get(int(r.in_priority) + (1 if r.accum_5 >= 3 else 0), "B")
+        # A+ is reserved for full-strength signals: below the tested 2x
+        # volume bar, confluence alone cannot earn the top grade
+        if g == "A+" and r.rvol < 2:
+            g = "A"
+        return g
+
+    graded = shortlist.assign(grade=[_grade(r) for r in shortlist.itertuples()])
+    return (
+        graded.assign(gorder=graded.grade.map({"A+": 0, "A": 1, "B": 2}))
+        .sort_values(["gorder", "rvol"], ascending=[True, False])
+        .drop(columns="gorder")
+        .head(10)
+    )
 
 
 def regime_verdict(breadth: pd.DataFrame) -> tuple[str, str, str]:
@@ -237,23 +259,7 @@ def render(breadth, sectors, shortlist, radar) -> str:
     )
 
     if len(shortlist):
-        def _grade(r):
-            g = {2: "A+", 1: "A"}.get(int(r.in_priority) + (1 if r.accum_5 >= 3 else 0), "B")
-            # A+ is reserved for full-strength signals: below the tested 2x
-            # volume bar, confluence alone cannot earn the top grade
-            if g == "A+" and r.rvol < 2:
-                g = "A"
-            return g
-
-        shortlist = shortlist.assign(grade=[_grade(r) for r in shortlist.itertuples()])
-        shortlist = (
-            shortlist.assign(gorder=shortlist.grade.map({"A+": 0, "A": 1, "B": 2}))
-            .sort_values(["gorder", "rvol"], ascending=[True, False])
-            .head(10)
-        )
-
-        # real risk.json is gitignored; cloud renders fall back to the example
-        # so published dashboards never reveal actual capital or sizing
+        # cloud renders fall back to the example config if risk.json is absent
         risk_path = ROOT / "config" / "risk.json"
         placeholder_risk = not risk_path.exists()
         if placeholder_risk:
@@ -438,6 +444,16 @@ def main() -> None:
     con = duckdb.connect()
     load(con)
     breadth, sectors, shortlist, radar = build_frames(con)
+
+    # persist the exact as-shown shortlist: forward-tracking evidence that
+    # survives any future change to the screen's code or thresholds
+    if len(shortlist):
+        day = pd.Timestamp(breadth.iloc[-1].d).date()
+        snap = ROOT / "data" / "shortlists" / f"{day}.csv"
+        if not snap.exists():
+            snap.parent.mkdir(parents=True, exist_ok=True)
+            shortlist.assign(d=day).to_csv(snap, index=False)
+
     html = render(breadth, sectors, shortlist, radar)
     path = OUT / "dashboard.html"
     path.write_text(html)
