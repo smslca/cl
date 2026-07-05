@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!-- Local scheduler: runs the daily fetch at 19:15 IST every weekday.
+<!-- Local failsafe: 20:30 IST, after the 19:15 GitHub Actions run.
+     Pulls the cloud's data, fills any gaps, regenerates the dashboard.
      launchd (unlike cron) fires a missed run when the Mac wakes up.
      Install:
        cp launchd/com.market.daily.plist ~/Library/LaunchAgents/
@@ -11,17 +12,17 @@
     <string>com.market.daily</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/praveenjana/Market/.venv/bin/python</string>
-        <string>/Users/praveenjana/Market/cl/fetch_daily.py</string>
+        <string>/bin/zsh</string>
+        <string>/Users/praveenjana/Market/cl/run_daily.sh</string>
     </array>
     <key>WorkingDirectory</key>
     <string>/Users/praveenjana/Market/cl</string>
     <key>StartCalendarInterval</key>
     <dict>
         <key>Hour</key>
-        <integer>19</integer>
+        <integer>20</integer>
         <key>Minute</key>
-        <integer>15</integer>
+        <integer>30</integer>
     </dict>
     <key>StandardOutPath</key>
     <string>/Users/praveenjana/Market/cl/fetch_daily.log</string>
