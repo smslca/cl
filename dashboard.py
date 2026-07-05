@@ -251,7 +251,13 @@ def render(breadth, sectors, shortlist, radar) -> str:
             .head(10)
         )
 
-        risk_cfg = json.loads((ROOT / "config" / "risk.json").read_text())
+        # real risk.json is gitignored; cloud renders fall back to the example
+        # so published dashboards never reveal actual capital or sizing
+        risk_path = ROOT / "config" / "risk.json"
+        placeholder_risk = not risk_path.exists()
+        if placeholder_risk:
+            risk_path = ROOT / "config" / "risk.json.example"
+        risk_cfg = json.loads(risk_path.read_text())
         capital = risk_cfg["capital_inr"]
         risk_amount = capital * risk_cfg["risk_per_trade_pct"] / 100
 
@@ -305,7 +311,8 @@ def render(breadth, sectors, shortlist, radar) -> str:
         <p class="muted">† craft defaults, not backtested (unlike the screen itself): entry = signal close, valid up to
         +3%; gap past max chase = pass, it's a different trade. Stop = signal-day low — where the buyers proved they
         exist; broken means the thesis is dead. Qty = ₹{risk_amount:,.0f} risk ÷ stop distance, capped at no-leverage.
-        Exit any holding on a close below its 20-SMA.</p>"""
+        Exit any holding on a close below its 20-SMA.
+        {"<b>Qty here uses example config, not your capital — real sizing is on your local dashboard only.</b>" if placeholder_risk else ""}</p>"""
     else:
         sl_table = "<p class='muted'>No stock passes all four filters today. That is information too — sit tight.</p>"
 
