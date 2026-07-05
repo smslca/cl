@@ -199,6 +199,7 @@ def heat(v, lo=-8, hi=8):
 def render(breadth, sectors, shortlist, radar) -> str:
     verdict, vcolor, vrule = regime_verdict(breadth)
     now = breadth.iloc[-1]
+    day = pd.Timestamp(now.d).date()
     breadth = breadth.assign(
         adv_smooth=breadth.advances.rolling(10).mean().round(0),
         dec_smooth=breadth.declines.rolling(10).mean().round(0),
@@ -317,7 +318,7 @@ def render(breadth, sectors, shortlist, radar) -> str:
         sl_table = "<p class='muted'>No stock passes all four filters today. That is information too — sit tight.</p>"
 
     return f"""<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Market — {now.d}</title>
+<html><head><meta charset="utf-8"><title>Market — {day}</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
 <style>
  body {{ font-family: -apple-system, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }}
@@ -339,7 +340,7 @@ def render(breadth, sectors, shortlist, radar) -> str:
  .process ol {{ margin: 6px 0 2px; padding-left: 1.3rem; }} .process li {{ padding: 2px 0; font-size: 14px; }}
 </style></head><body>
 
-<h1 style="font-size:22px">The market story <span class="muted">— {now.d}</span></h1>
+<h1 style="font-size:22px">The market story <span class="muted">— {day}</span></h1>
 
 <div class="process"><b style="font-size:14px">The process — nothing else matters</b>
 <ol>
@@ -404,7 +405,7 @@ future trigger is even worth taking. ★ = on the shortlist today.</p>
 </ol>
 </details>
 
-<p class="muted" style="margin-top:1.5rem">Generated {datetime.datetime.now():%Y-%m-%d %H:%M} · data through {now.d} · rules: GOOD = breadth ≥ 55% & rising vs 10d ago; WEAK = &lt; 45% & falling.</p>
+<p class="muted" style="margin-top:1.5rem">Generated {datetime.datetime.now():%Y-%m-%d %H:%M} · data through {day} · rules: GOOD = breadth ≥ 55% & rising vs 10d ago; WEAK = &lt; 45% & falling.</p>
 
 <script>
 new Chart(document.getElementById('breadth'), {{
