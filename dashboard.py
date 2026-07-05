@@ -12,6 +12,7 @@ config/sector_indices.csv. Static HTML, no server — open in a browser.
 import datetime
 import json
 import pathlib
+import zoneinfo
 
 import duckdb
 import pandas as pd
@@ -411,7 +412,7 @@ future trigger is even worth taking. ★ = on the shortlist today.</p>
 </ol>
 </details>
 
-<p class="muted" style="margin-top:1.5rem">Generated {datetime.datetime.now():%Y-%m-%d %H:%M} · data through {day} · rules: GOOD = breadth ≥ 55% & rising vs 10d ago; WEAK = &lt; 45% & falling.</p>
+<p class="muted" style="margin-top:1.5rem">Generated {datetime.datetime.now(zoneinfo.ZoneInfo("Asia/Kolkata")):%Y-%m-%d %H:%M} IST · data through {day} · rules: GOOD = breadth ≥ 55% & rising vs 10d ago; WEAK = &lt; 45% & falling.</p>
 
 <script>
 new Chart(document.getElementById('breadth'), {{
