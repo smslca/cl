@@ -1,0 +1,6 @@
+{
+  "capital_inr": 100000,
+  "risk_per_trade_pct": 1.0,
+  "max_position_pct": 20,
+  "_note": "Copy to risk.json and EDIT. capital_inr = trading capital. risk_per_trade_pct = max % of capital lost if a stop is hit. max_position_pct = cap on any single position's share of capital. risk.json is gitignored - your real numbers stay off the remote."
+}

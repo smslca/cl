@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Local scheduler: runs the daily fetch at 19:15 IST every weekday.
+     launchd (unlike cron) fires a missed run when the Mac wakes up.
+     Install:
+       cp launchd/com.market.daily.plist ~/Library/LaunchAgents/
+       launchctl load ~/Library/LaunchAgents/com.market.daily.plist -->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.market.daily</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/praveenjana/Market/.venv/bin/python</string>
+        <string>/Users/praveenjana/Market/cl/fetch_daily.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/praveenjana/Market/cl</string>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>19</integer>
+        <key>Minute</key>
+        <integer>15</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/Users/praveenjana/Market/cl/fetch_daily.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/praveenjana/Market/cl/fetch_daily.log</string>
+</dict>
+</plist>

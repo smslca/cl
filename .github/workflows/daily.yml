@@ -1,0 +1,31 @@
+# Zero-cost cloud runner: fetches the day's data and commits it back to the repo.
+# Note: NSE sometimes blocks datacenter IPs on www.nseindia.com APIs; the
+# archives host (bhavcopy) is usually fine. If the snapshot steps start
+# failing from Actions, keep those local and let Actions handle bhavcopy only.
+name: daily-market-data
+
+on:
+  schedule:
+    - cron: "45 13 * * 1-5" # 19:15 IST, after NSE publishes the day's bhavcopy
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python fetch_daily.py
+      - name: Commit data
+        run: |
+          git config user.name "market-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet || git commit -m "data: $(date -u +%F)"
+          git push

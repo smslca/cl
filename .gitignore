@@ -1,0 +1,7 @@
+__pycache__/
+*.duckdb
+out/
+.DS_Store
+.claude/
+fetch_daily.log
+config/risk.json
