@@ -26,6 +26,8 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - run: python fetch_daily.py
+      - name: Self-heal any bhavcopy gaps from dropped runs
+        run: python backfill.py --days 7
       - name: Build dashboard for GitHub Pages
         run: |
           python dashboard.py
