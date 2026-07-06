@@ -176,7 +176,17 @@ def build_frames(con):
         GROUP BY ALL ORDER BY rvol DESC
     """).df()
 
-    return breadth, sectors, finalize_shortlist(shortlist), radar
+    return breadth, sectors, fill_industry(finalize_shortlist(shortlist)), fill_industry(radar)
+
+
+def fill_industry(df: pd.DataFrame) -> pd.DataFrame:
+    """Symbols outside the watched indices get their NSE industry label instead of '—'."""
+    map_path = ROOT / "config" / "symbol_industry.csv"
+    if df.empty or "sectors" not in df.columns or not map_path.exists():
+        return df
+    industry = pd.read_csv(map_path).set_index("symbol")["industry"]
+    fallback = df.symbol.map(industry).fillna("—")
+    return df.assign(sectors=df.sectors.where(df.sectors != "—", fallback))
 
 
 def finalize_shortlist(shortlist: pd.DataFrame) -> pd.DataFrame:
