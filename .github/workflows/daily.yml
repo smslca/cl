@@ -6,7 +6,11 @@ name: daily-market-data
 
 on:
   schedule:
-    - cron: "45 13 * * 1-5" # 19:15 IST, after NSE publishes the day's bhavcopy
+    # GitHub crons are best-effort and get dropped under load, especially on
+    # popular minutes — odd minutes + a retry an hour later, all idempotent.
+    # The 20:30 IST local failsafe covers the day both attempts are dropped.
+    - cron: "52 13 * * 1-5" # 19:22 IST, after NSE publishes the day's bhavcopy
+    - cron: "37 14 * * 1-5" # 20:07 IST retry
   workflow_dispatch:
 
 permissions:

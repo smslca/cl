@@ -7,13 +7,16 @@
 set -e
 cd /Users/praveenjana/Market/cl
 
-/usr/bin/git pull --ff-only
+# explicit refspec: immune to FETCH_HEAD pollution from concurrent fetches
+/usr/bin/git pull --ff-only origin main
 /Users/praveenjana/Market/.venv/bin/python fetch_daily.py
+/Users/praveenjana/Market/.venv/bin/python dashboard.py
 
-/usr/bin/git add data/
+# on fallback days also publish the dashboard, or Pages serves a stale page
+cp out/dashboard.html docs/index.html
+
+/usr/bin/git add data/ docs/
 if ! /usr/bin/git diff --cached --quiet; then
     /usr/bin/git commit -m "data: local fallback $(date +%F)"
-    /usr/bin/git push
+    /usr/bin/git push origin main
 fi
-
-/Users/praveenjana/Market/.venv/bin/python dashboard.py
