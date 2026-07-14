@@ -24,8 +24,13 @@ OUT = ROOT / "out"
 SECTORS = ROOT / "config" / "sector_indices.csv"
 
 
-def load(con: duckdb.DuckDBPyConnection):
-    con.execute(f"CREATE TEMP VIEW f AS {FEATURES_SQL}")
+def load(con: duckdb.DuckDBPyConnection, as_of: str | None = None):
+    """as_of: ISO date to render a historical report; None = latest data.
+    All features are trailing-window, so cutting rows at as_of reproduces
+    exactly what the screen knew that evening."""
+    con.execute(f"CREATE TEMP VIEW f_full AS {FEATURES_SQL}")
+    cutoff = f"WHERE d <= DATE '{as_of}'" if as_of else ""
+    con.execute(f"CREATE TEMP VIEW f AS SELECT * FROM f_full {cutoff}")
     latest_cons = max((ROOT / "data" / "raw" / "constituents").glob("*.csv"))
     con.execute(f"""
         CREATE TEMP VIEW members AS
@@ -115,7 +120,7 @@ def build_frames(con):
         WHERE r.accum_5 >= 4          -- delivery above average 4+ of last 5 sessions
           AND r.rs_rank >= 0.60
           AND r.close > r.sma20
-        GROUP BY ALL ORDER BY r.accum_5 DESC, rs_rank DESC
+        GROUP BY ALL ORDER BY r.accum_5 DESC, rs_rank DESC, r.symbol
         LIMIT 17
     """).df()
 
@@ -265,6 +270,7 @@ def render(breadth, sectors, shortlist, radar) -> str:
         f"<td>{r.sectors}</td><td>{r.close}</td><td>{r.ret_30d:+.1f}%</td>"
         f"<td>{r.accum_5}/5</td>"
         f"<td>{r.pct_of_52wk_high:.0f}%</td>"
+        f"<td style='{heat(r.ext_pct, -30, 30)}'>{r.ext_pct:+.0f}%</td>"
         f"{alert(r)}</tr>"
         for r in radar.itertuples()
     )
@@ -286,8 +292,6 @@ def render(breadth, sectors, shortlist, radar) -> str:
                 f"delivery {r.deliv_per}% vs {r.avg_deliv_20}% usual",
                 f"{100 - r.pct_of_52wk_high:.0f}% below 52wk high",
             ]
-            if r.ext_pct > 15:
-                bits.append(f"stretched {r.ext_pct:+.0f}% over 20sma")
             return " · ".join(bits)
 
         def ticket(r):
@@ -318,12 +322,13 @@ def render(breadth, sectors, shortlist, radar) -> str:
         sl_rows = "\n".join(
             f"<tr><td><b>{r.grade}</b></td><td class='sym'>{r.symbol}</td>"
             f"<td>{r.ret_30d:+.1f}%</td>"
+            f"<td style='{heat(r.ext_pct, -30, 30)}'>{r.ext_pct:+.0f}%</td>"
             f"{ticket(r)}"
             f"<td style='text-align:left'>{reason(r)}</td>"
             f"<td style='text-align:left'>{badges(r)}{r.sectors if r.sectors != '—' else ''}</td></tr>"
             for r in shortlist.itertuples()
         )
-        sl_table = f"""<table><tr><th>grade</th><th>symbol</th><th>30d</th>
+        sl_table = f"""<table><tr><th>grade</th><th>symbol</th><th>30d</th><th>ext</th>
             <th>entry†</th><th>max chase†</th><th>stop†</th><th>risk</th><th>qty</th>
             <th style='text-align:left'>why it is here</th><th style='text-align:left'>confluence</th></tr>{sl_rows}</table>
         <p class="muted">† craft defaults, not backtested (unlike the screen itself): entry = signal close, valid up to
@@ -395,7 +400,11 @@ def render(breadth, sectors, shortlist, radar) -> str:
 <p class="muted">The only buy list on this page (backtested: +7.1% median 60-day excess, 61% win rate). Grade = confluence:
 A+ = PRIORITY sector and was on radar this week · A = one of the two · B = signal alone.
 Top 10 shown; pool admits volume from 1.5x so the list fills — names below the tested 2x bar say so in their reason,
-and are capped at A: the top grade is reserved for full-strength signals with full confluence.
+and are capped at A: the top grade is reserved for full-strength signals with full confluence.<br>
+<b>Choosing among equal grades:</b> volume in the 2–5x band beats a 15x freak (eruption, not eruption headline) ·
+fattest delivery gap and longest streak wins (74% vs 55% is a deeper footprint than 52% vs 51%) ·
+least extended wins (nearer the 20-SMA = structurally closer stop, earlier in the move) ·
+and same-sector rows are one bet, not two — never double it.
 Heaviest sector accumulation right now: {", ".join(f"{r.sector} ({r.accum_pct:.0f}%)" for r in chase.itertuples())}.</p>
 {sl_table}
 
@@ -404,7 +413,7 @@ Heaviest sector accumulation right now: {", ".join(f"{r.sector} ({r.accum_pct:.0
 "Watch above" = 10-day high; crossing it on volume is what would promote the name to the shortlist.
 "Floor" = 10-day low, the rough stop zone <i>if</i> it ever triggers — shown so you can pre-judge whether a
 future trigger is even worth taking. ★ = on the shortlist today.</p>
-<table><tr><th>symbol</th><th>sectors</th><th>close</th><th>30d</th><th>deliv streak</th><th>of 52wk high</th><th>watch above</th><th>floor</th><th>if-triggered risk</th></tr>
+<table><tr><th>symbol</th><th>sectors</th><th>close</th><th>30d</th><th>deliv streak</th><th>of 52wk high</th><th>ext</th><th>watch above</th><th>floor</th><th>if-triggered risk</th></tr>
 {radar_rows}</table>
 
 <details style="margin-top:3rem; border: 1px solid #e5e5e5; border-radius: 10px; padding: 12px 18px;">
@@ -415,6 +424,7 @@ future trigger is even worth taking. ★ = on the shortlist today.</p>
 <li><b>Extension is a timing statement, never a quality statement.</b> Your backtest: the runaways were the biggest winners. Park extended leaders, don't delete them — pounce when they rest and requalify.</li>
 <li><b>Your instincts are hypotheses, not vetoes.</b> The upper-wick fear and the wait-for-pullback comfort were both refuted by your own 505 days. Every "my mind says" goes to the data for trial before it touches an order.</li>
 <li><b>Grade measures confluence, not signal strength.</b> An A+ with 1.8x volume is context agreeing about a whisper. Read the reason column before the grade.</li>
+<li><b>Among equal grades: moderate volume beats freak spikes, deep delivery beats thin, near the 20-SMA beats stretched — and two rows from one sector are one bet.</b> These are reading rules, not a sort order; the journal decides if your picks beat taking the top row.</li>
 <li><b>The entry needs no finesse; the stop needs no mercy.</b> The tested edge bought the next close, dumbly. Stop = signal-day low, exit = close below 20-SMA, size = risk ÷ stop distance. All feelings live inside the qty column, nowhere else.</li>
 <li><b>Tight stop means cheap to be wrong, not safe to be huge.</b> The position cap exists because four tight-stop days would otherwise concentrate the whole account.</li>
 <li><b>Capital is promoted by adherence, not confidence.</b> 20 logged trades at ≥90% process adherence doubles the stake. Confidence follows winning streaks — the exact wrong time to add money. One overridden stop resets the count.</li>
@@ -450,15 +460,17 @@ new Chart(document.getElementById('advdec'), {{
 </body></html>"""
 
 
-def main() -> None:
-    OUT.mkdir(exist_ok=True)
+def generate(as_of: str | None = None, out_path: pathlib.Path | None = None) -> pathlib.Path:
+    """Render the dashboard; as_of=None is the live page, a date renders that
+    day's report. Only live runs persist the shortlist snapshot — historical
+    regeneration must never rewrite the as-shown record."""
     con = duckdb.connect()
-    load(con)
+    load(con, as_of)
     breadth, sectors, shortlist, radar = build_frames(con)
 
     # persist the exact as-shown shortlist: forward-tracking evidence that
     # survives any future change to the screen's code or thresholds
-    if len(shortlist):
+    if as_of is None and len(shortlist):
         day = pd.Timestamp(breadth.iloc[-1].d).date()
         snap = ROOT / "data" / "shortlists" / f"{day}.csv"
         if not snap.exists():
@@ -466,9 +478,21 @@ def main() -> None:
             shortlist.assign(d=day).to_csv(snap, index=False)
 
     html = render(breadth, sectors, shortlist, radar)
-    path = OUT / "dashboard.html"
+    path = out_path or OUT / "dashboard.html"
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(html)
     print(f"wrote {path} ({len(sectors)} sectors, {len(shortlist)} shortlist names)")
+    return path
+
+
+def main() -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--as-of", help="render a historical report for this ISO date")
+    parser.add_argument("--out", help="output path (default out/dashboard.html)")
+    args = parser.parse_args()
+    generate(args.as_of, pathlib.Path(args.out) if args.out else None)
 
 
 if __name__ == "__main__":
