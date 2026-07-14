@@ -55,8 +55,15 @@ def build_message() -> str:
     risk_amt = risk_cfg["capital_inr"] * risk_cfg["risk_per_trade_pct"] / 100
     max_pos = risk_cfg["capital_inr"] * risk_cfg["max_position_pct"] / 100
 
-    lines = [f"📈 <b>{day} — {verdict}</b>", vrule,
-             "9:15 gate: no entries if NIFTY opens &lt; −0.2% or &gt; +0.5%", ""]
+    j = pd.read_csv(ROOT / "journal" / "trades.csv")
+    n_open = int(j.exit_price.isna().sum())
+    adher = 100.0 * (j.adherent.fillna("yes") == "yes").mean() if len(j) else 100.0
+
+    lines = [f"📊 <b>{day:%a %d %b} — {verdict}</b>", vrule, ""]
+    if n_open >= 3:
+        lines += ["⛔ <b>Positions 3/3 — no slots.</b> Tickets below are watch-only.", ""]
+    else:
+        lines += [f"✅ {3 - n_open} of 3 slots free", ""]
 
     if snap_path.exists():
         sl = pd.read_csv(snap_path)
@@ -66,24 +73,25 @@ def build_message() -> str:
             for r in top.itertuples():
                 risk_ps = r.close - r.sig_low
                 qty = int(min(risk_amt / risk_ps, max_pos / r.close)) if risk_ps / r.close <= 0.08 else 0
-                qty_s = f"qty {qty}" if qty >= 1 else "skip (stop too wide / price too big)"
-                lines.append(
-                    f"<b>{r.grade} {r.symbol}</b> — entry {r.close} · ≤{r.close * 1.03:.1f} · "
-                    f"stop {r.sig_low} · {qty_s} · ₹{risk_ps * max(qty, 0):.0f} risk"
-                )
+                lines.append(f"<b>{r.grade} · {r.symbol}</b>")
+                lines.append(f"<code>Entry {r.close} · Max {r.close * 1.03:.0f} · Ext {r.ext_pct:+.1f}%</code>")
+                if qty >= 1:
+                    lines.append(f"<code>Stop {r.sig_low} · Qty {qty} · "
+                                 f"Risk ₹{risk_ps * qty:.0f} ({100 * risk_ps / r.close:.1f}%)</code>")
+                else:
+                    lines.append("<code>Skip — stop too wide / price too big</code>")
+                lines.append("")
             b = len(sl) - len(top)
             if b:
-                lines.append(f"(+{b} B-grade on the page)")
+                lines += [f"+{b} B-grade on the page", ""]
         else:
-            lines.append("No A-grade tickets today. Do-nothing day.")
+            lines += ["No A-grade tickets today. Do-nothing day.", ""]
     else:
-        lines.append("No shortlist snapshot for today.")
+        lines += ["No shortlist snapshot for today.", ""]
 
-    j = pd.read_csv(ROOT / "journal" / "trades.csv")
-    n_open = int(j.exit_price.isna().sum())
-    adher = 100.0 * (j.adherent.fillna("yes") == "yes").mean() if len(j) else 100.0
-    lines += ["", f"Tracker {len(j)}/20 · adherence {adher:.0f}% · {n_open}/3 positions",
-              "smslca.github.io/cl"]
+    lines += ["🌅 Gate: no entries if NIFTY opens &lt;−0.2% or &gt;+0.5%",
+              f"📒 {len(j)}/20 trades · {adher:.0f}% adherence",
+              '🔗 <a href="https://smslca.github.io/cl/">Dashboard</a>']
     return "\n".join(lines)
 
 

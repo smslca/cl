@@ -258,8 +258,16 @@ def heat(v, lo=-8, hi=8):
     return f"background: rgba({color},{a:.2f});"
 
 
-def render(breadth, sectors, shortlist, radar, tracker: str = "") -> str:
+def render(breadth, sectors, shortlist, radar, tracker: str = "", at_root: bool = True) -> str:
     verdict, vcolor, vrule = regime_verdict(breadth)
+    # history reports live one level down (docs/history/) inside the viewer
+    # iframe, so links need ../ and target=_top to escape the frame
+    if at_root:
+        nav = ('<a href="journal.html" style="font-size:13px; margin-left:10px;">ledger →</a>'
+               '<a href="history/" style="font-size:13px; margin-left:6px;">archive →</a>')
+    else:
+        nav = ('<a href="../index.html" target="_top" style="font-size:13px; margin-left:10px;">← live dashboard</a>'
+               '<a href="../journal.html" target="_top" style="font-size:13px; margin-left:6px;">ledger →</a>')
     now = breadth.iloc[-1]
     day = pd.Timestamp(now.d).date()
     breadth = breadth.assign(
@@ -387,8 +395,7 @@ def render(breadth, sectors, shortlist, radar, tracker: str = "") -> str:
 </style></head><body>
 
 <h1 style="font-size:22px">The market story <span class="muted">— {day}</span>
-<a href="journal.html" style="font-size:13px; margin-left:10px;">ledger →</a>
-<a href="history/" style="font-size:13px; margin-left:6px;">archive →</a></h1>
+{nav}</h1>
 {tracker}
 <div class="process"><b style="font-size:14px">The process — nothing else matters</b>
 <ol>
@@ -509,7 +516,8 @@ def generate(as_of: str | None = None, out_path: pathlib.Path | None = None) -> 
 
     # the tracker reflects today's journal — anachronistic on as-of reports
     html = render(breadth, sectors, shortlist, radar,
-                  tracker=stage_tracker() if as_of is None else "")
+                  tracker=stage_tracker() if as_of is None else "",
+                  at_root=as_of is None)
     path = out_path or OUT / "dashboard.html"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(html)
