@@ -1,3 +1,4 @@
 trade_id,symbol,signal_date,entry_date,entry_price,qty,stop,gtt_set,grade,signal_close,rvol,rs_rank,deliv_per,avg_deliv_20,pct_of_52wk_high,regime,risk_inr,exit_date,exit_price,exit_reason,pnl_inr,r_multiple,price_60d_after_exit,notes
 1,MANGLMCEM,2026-07-03,2026-07-06,936.75,10,899.05,yes,A,926.4,4.46,0.84,67.8,59.3,96.0,MIXED,377,,,,,,,corridor entry +1.1% over signal close; radar 4/5 before signal
 2,MOREALTY,2026-07-03,2026-07-06,89.84,112,85.51,yes,A,88.75,2.11,0.84,79.9,55.5,86.0,MIXED,485,,,,,,,corridor entry +1.2%; radar 5/5; realty sector 70% accum; on shortlist again day after entry
+3,PHOENIXLTD,2026-07-06,2026-07-07,2109.40,4,2030.0,yes,A,2105.8,2.66,0.86,61.3,53.7,99.0,MIXED,318,2026-07-08,2030.0,stop_hit,-317.6,-1.0,,corridor entry +0.2%; radar 5/5; qty = 20% position cap; ext was +12% at signal; GTT executed at exact printed stop next day — first honored stop of the new system
