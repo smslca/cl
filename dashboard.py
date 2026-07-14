@@ -400,12 +400,14 @@ def render(breadth, sectors, shortlist, radar) -> str:
 <p class="muted">The only buy list on this page (backtested: +7.1% median 60-day excess, 61% win rate). Grade = confluence:
 A+ = PRIORITY sector and was on radar this week · A = one of the two · B = signal alone.
 Top 10 shown; pool admits volume from 1.5x so the list fills — names below the tested 2x bar say so in their reason,
-and are capped at A: the top grade is reserved for full-strength signals with full confluence.<br>
+and are capped at A: the top grade is reserved for full-strength signals with full confluence.
+Heaviest sector accumulation right now: {", ".join(f"{r.sector} ({r.accum_pct:.0f}%)" for r in chase.itertuples())}.</p>
+<div style="background:#E1F5EE; border-left:4px solid #1D9E75; padding:10px 14px; margin:10px 0 14px; font-size:13.5px; color:#085041; line-height:1.55;">
 <b>Choosing among equal grades:</b> volume in the 2–5x band beats a 15x freak (eruption, not eruption headline) ·
 fattest delivery gap and longest streak wins (74% vs 55% is a deeper footprint than 52% vs 51%) ·
 least extended wins (nearer the 20-SMA = structurally closer stop, earlier in the move) ·
-and same-sector rows are one bet, not two — never double it.
-Heaviest sector accumulation right now: {", ".join(f"{r.sector} ({r.accum_pct:.0f}%)" for r in chase.itertuples())}.</p>
+same-sector rows are one bet, not two — never double it.
+</div>
 {sl_table}
 
 <h2>4 · The waiting room — radar</h2>
