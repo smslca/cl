@@ -14,6 +14,8 @@ cd /Users/praveenjana/Market/cl
 
 # on fallback days also publish the dashboard, or Pages serves a stale page
 cp out/dashboard.html docs/index.html
+/Users/praveenjana/Market/.venv/bin/python history.py
+/Users/praveenjana/Market/.venv/bin/python journal_page.py
 
 /usr/bin/git add data/ docs/
 if ! /usr/bin/git diff --cached --quiet; then

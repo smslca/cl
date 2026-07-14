@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Ledger — 2026-07-14</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<style>
+ body { font-family: -apple-system, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+ h2 { margin-top: 2rem; font-size: 19px; }
+ table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+ td, th { padding: 6px 9px; text-align: right; border-bottom: 1px solid #eee; }
+ td:first-child, th:first-child { text-align: left; }
+ .sym { font-weight: 600; } .muted { color: #777; font-size: 12px; }
+ .badge-g { background: #E1F5EE; color: #085041; font-size: 11px; padding: 2px 8px; border-radius: 8px; }
+ .badge-r { background: #FCEBEB; color: #791F1F; font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600; }
+</style></head><body>
+
+<h1 style="font-size:22px">The trader's ledger <span class="muted">— 2026-07-14</span> <a href="index.html" style="font-size:13px; margin-left:10px;">dashboard →</a></h1>
+
+<div style="border:1px solid #e5e5e5; border-radius:10px; padding:10px 16px; margin-bottom:0.75rem;
+            display:flex; align-items:center; gap:14px; font-size:13.5px;">
+ <b>Stage 0 — prove the trader</b>
+ <span>trade 3/20</span>
+ <span style="color:#1D9E75; font-weight:600;">adherence 100%</span>
+ <div style="flex:1; height:6px; background:#eee; border-radius:3px; overflow:hidden;">
+  <div style="width:15%; height:100%; background:#1D9E75;"></div>
+ </div>
+ <span class="muted">gate: 20 trades at ≥90% → capital doubles (PLAN.md)</span>
+</div>
+
+<h2>Open positions — nightly health check</h2>
+<p class="muted">Verdict column applies the exit rules for you: stop crossed, or a close below the 20-SMA, means the trade is over — no negotiation.</p>
+<table><tr><th>symbol</th><th>entry date</th><th>entry</th><th>qty</th><th>stop</th><th>close</th>
+<th>unrealized</th><th>to stop</th><th>20-SMA</th><th>days</th><th>verdict</th></tr>
+<tr><td class='sym'>MANGLMCEM</td><td>2026-07-06</td><td>936.75</td><td>10</td><td>899.05</td><td>965.4</td><td style='color:#0F6E56'>+286 (+0.8R)</td><td>6.9%</td><td>904.76</td><td>6</td><td><span class='badge-g'>hold</span></td></tr><tr><td class='sym'>MOREALTY</td><td>2026-07-06</td><td>89.84</td><td>112</td><td>85.51</td><td>93.44</td><td style='color:#0F6E56'>+403 (+0.8R)</td><td>8.5%</td><td>85.05</td><td>6</td><td><span class='badge-g'>hold</span></td></tr></table>
+
+<h2>Closed trades</h2>
+<p class="muted">1 closed · win rate 0% · total R -1.0 · avg R -1.00 · realized ₹-318 · "+60d" = price 60 calendar days after exit — the regret column, auto-filled. It grades the exit rule, not you.</p>
+<table><tr><th>symbol</th><th>in</th><th>out</th><th>entry</th><th>exit</th><th>reason</th><th>P&amp;L</th><th>R</th><th>+60d</th></tr>
+<tr><td class='sym'>PHOENIXLTD</td><td>2026-07-07</td><td>2026-07-08</td><td>2109.4</td><td>2030.0</td><td>stop_hit</td><td style='color:#993C1D'>-318</td><td style='color:#993C1D'>-1.0R</td><td>— (fills at +60d)</td></tr></table>
+
+<h2>Realized R — the track record</h2>
+<div style="height:200px"><canvas id="rc"></canvas></div>
+
+<p class="muted" style="margin-top:2rem">Generated nightly from journal/trades.csv + price history. The honest sentence lives in the notes column — numbers are for the system, sentences are for the trader.</p>
+
+<script>
+new Chart(document.getElementById('rc'), {
+  type: 'line',
+  data: { labels: ['2026-07-08'], datasets: [{ label: 'cumulative R', data: [-1.0],
+    borderColor: '#1D9E75', pointRadius: 4, borderWidth: 2, stepped: true }] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+});
+</script>
+</body></html>

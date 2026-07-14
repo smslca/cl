@@ -386,7 +386,9 @@ def render(breadth, sectors, shortlist, radar, tracker: str = "") -> str:
  .process ol {{ margin: 6px 0 2px; padding-left: 1.3rem; }} .process li {{ padding: 2px 0; font-size: 14px; }}
 </style></head><body>
 
-<h1 style="font-size:22px">The market story <span class="muted">— {day}</span></h1>
+<h1 style="font-size:22px">The market story <span class="muted">— {day}</span>
+<a href="journal.html" style="font-size:13px; margin-left:10px;">ledger →</a>
+<a href="history/" style="font-size:13px; margin-left:6px;">archive →</a></h1>
 {tracker}
 <div class="process"><b style="font-size:14px">The process — nothing else matters</b>
 <ol>
