@@ -46,14 +46,14 @@ infrastructure. Decide then what "big" means. Not before.
 
 - **Telegram notifications** (approved, next build): evening push of gradeworthy
   tickets + daily heartbeat line; missing message = pipeline failure alarm.
-- **Morning conditions check** (idea, unevaluated): a post-open job that reads
-  market conditions and gates the day's entries. Rules for when we revisit:
-  it must be *mechanical and backtestable* (e.g. "skip entries if NIFTY gaps
-  down >X%") — never a vibe check, because a morning gut-veto is fear wearing
-  a process costume. Note before building: the corridor already handles
-  per-stock gaps mechanically, and the backtest found signals in *weak* tape
-  performed fine — the burden of proof is on the filter, tested on the 4,628
-  historical signals like everything else.
+- **Morning conditions check** — PROMOTED TO TESTED RULE 2026-07-14. Trial
+  (exp_morning_gate.py, 982 corridor-valid entries): market-open gap outside
+  [−0.2%, +0.5%] → 27–46% win, negative mean, on BOTH sides — euphoric opens
+  as toxic as fearful ones. In-window: 63% win, +2.1% median. Gate closes
+  ~22% of mornings (mostly green ones; longest historical lockout 9 sessions).
+  The rule: one glance at NIFTY's open at 9:15 — outside the window, no
+  entries that day. Entries only; holdings and exits unaffected. No
+  infrastructure needed; on the process card.
 
 ## Standing rules (all stages)
 

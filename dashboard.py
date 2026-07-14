@@ -395,6 +395,8 @@ def render(breadth, sectors, shortlist, radar, tracker: str = "") -> str:
 <li>Read the weather. WEAK → smaller size or sit out. You only control what you lose.</li>
 <li>Shortlist empty → do nothing. Most days are do-nothing days.</li>
 <li>Shortlist name + PRIORITY sector agree → candidate. Buy next day, don't wait for a dip.</li>
+<li>9:15 gate: NIFTY opens below −0.2% or above +0.5% → no entries today, whatever the list says.
+Tested on 982 entries — both fear and euphoria openings lose. Holdings ride; only entries stop.</li>
 <li>Size by your risk rules. Write down why you entered.</li>
 <li>Never buy the laggard because the leader is extended. Park extended leaders; re-enter when they rest.</li>
 </ol></div>
