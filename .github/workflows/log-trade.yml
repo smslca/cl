@@ -14,10 +14,12 @@ permissions:
 
 jobs:
   log:
+    # keyed on author + the form's own structure, NOT labels — templates can
+    # only auto-apply labels that already exist, a silent footgun
     if: >
       github.event.issue.state == 'open' &&
       github.event.issue.user.login == 'smslca' &&
-      contains(github.event.issue.labels.*.name, 'trade')
+      contains(github.event.issue.body, '### Action')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
