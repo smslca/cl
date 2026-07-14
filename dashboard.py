@@ -184,6 +184,30 @@ def build_frames(con):
     return breadth, sectors, fill_industry(finalize_shortlist(shortlist)), fill_industry(radar)
 
 
+def stage_tracker() -> str:
+    """Stage-0 progress from the journal — the plan, staring back daily.
+    Gates and stages live in PLAN.md; this renders the current one."""
+    jpath = ROOT / "journal" / "trades.csv"
+    if not jpath.exists():
+        return ""
+    j = pd.read_csv(jpath)
+    n, goal = len(j), 20
+    adher = 100.0 * (j["adherent"].fillna("yes") == "yes").mean() if n else 100.0
+    pct = min(n / goal, 1.0) * 100
+    color = "#1D9E75" if adher >= 90 else "#D85A30"
+    return f"""
+<div style="border:1px solid #e5e5e5; border-radius:10px; padding:10px 16px; margin-bottom:0.75rem;
+            display:flex; align-items:center; gap:14px; font-size:13.5px;">
+ <b>Stage 0 — prove the trader</b>
+ <span>trade {n}/{goal}</span>
+ <span style="color:{color}; font-weight:600;">adherence {adher:.0f}%</span>
+ <div style="flex:1; height:6px; background:#eee; border-radius:3px; overflow:hidden;">
+  <div style="width:{pct:.0f}%; height:100%; background:{color};"></div>
+ </div>
+ <span class="muted">gate: 20 trades at ≥90% → capital doubles (PLAN.md)</span>
+</div>"""
+
+
 def fill_industry(df: pd.DataFrame) -> pd.DataFrame:
     """Symbols outside the watched indices get their NSE industry label instead of '—'."""
     map_path = ROOT / "config" / "symbol_industry.csv"
@@ -234,7 +258,7 @@ def heat(v, lo=-8, hi=8):
     return f"background: rgba({color},{a:.2f});"
 
 
-def render(breadth, sectors, shortlist, radar) -> str:
+def render(breadth, sectors, shortlist, radar, tracker: str = "") -> str:
     verdict, vcolor, vrule = regime_verdict(breadth)
     now = breadth.iloc[-1]
     day = pd.Timestamp(now.d).date()
@@ -363,7 +387,7 @@ def render(breadth, sectors, shortlist, radar) -> str:
 </style></head><body>
 
 <h1 style="font-size:22px">The market story <span class="muted">— {day}</span></h1>
-
+{tracker}
 <div class="process"><b style="font-size:14px">The process — nothing else matters</b>
 <ol>
 <li>Read the weather. WEAK → smaller size or sit out. You only control what you lose.</li>
@@ -479,7 +503,9 @@ def generate(as_of: str | None = None, out_path: pathlib.Path | None = None) -> 
             snap.parent.mkdir(parents=True, exist_ok=True)
             shortlist.assign(d=day).to_csv(snap, index=False)
 
-    html = render(breadth, sectors, shortlist, radar)
+    # the tracker reflects today's journal — anachronistic on as-of reports
+    html = render(breadth, sectors, shortlist, radar,
+                  tracker=stage_tracker() if as_of is None else "")
     path = out_path or OUT / "dashboard.html"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(html)
