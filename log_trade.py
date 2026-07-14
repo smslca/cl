@@ -81,15 +81,24 @@ def regime_for(con, d) -> str:
 
 def do_buy(con, j, f, today):
     sym, price, qty = f["symbol"].upper(), float(f["fill price"]), int(f["qty"])
+    gtt_field = "yes" if f.get("gtt stop order placed? (buy only)", "") == "yes" else "NOT YET"
     open_all = j[j.exit_price.isna()]
+    open_pos = open_all[open_all.symbol == sym]
+
+    # an edit re-submitting today's logged fill is a GTT confirmation, not a dup
+    if len(open_pos):
+        r = open_pos.iloc[0]
+        if float(r.entry_price) == price and str(r.entry_date) == today.isoformat():
+            j.loc[open_pos.index[0], "gtt_set"] = gtt_field
+            mark = "✓" if gtt_field == "yes" else "⚠️ still NOT PLACED"
+            return j, f"**Trade #{int(r.trade_id)} {sym} — GTT status updated: {gtt_field} {mark}**\n"
+        raise Reject(f"Already holding {sym} (trade #{int(r.trade_id)}) — partial adds not supported.")
+
     if len(open_all) >= 3:
         raise Reject(
             f"Already holding 3 positions ({', '.join(open_all.symbol)}) — the Stage-0 ceiling "
             "(PLAN.md). Something must close before anything opens."
         )
-    open_pos = open_all[open_all.symbol == sym]
-    if len(open_pos):
-        raise Reject(f"Already holding {sym} (trade #{open_pos.iloc[0].trade_id}) — partial adds not supported.")
 
     d, close, _ = latest_quote(con, sym)
     if not 0.8 * close <= price <= 1.2 * close:
@@ -101,11 +110,12 @@ def do_buy(con, j, f, today):
         raise Reject(f"Fill {price} is at/below the stop {stop} — the signal is already dead. Pass.")
     corridor_ok = price <= float(sig.close) * 1.03
     risk = round((price - stop) * qty)
+    gtt = gtt_field
 
     row = {
         "trade_id": int(j.trade_id.max()) + 1 if len(j) else 1,
         "symbol": sym, "signal_date": sig.d, "entry_date": today.isoformat(),
-        "entry_price": price, "qty": qty, "stop": stop, "gtt_set": "confirm",
+        "entry_price": price, "qty": qty, "stop": stop, "gtt_set": gtt,
         "grade": sig.grade, "signal_close": sig.close, "rvol": sig.rvol,
         "rs_rank": sig.rs_rank, "deliv_per": sig.deliv_per, "avg_deliv_20": sig.avg_deliv_20,
         "pct_of_52wk_high": sig.pct_of_52wk_high, "regime": regime_for(con, sig.d),
@@ -117,7 +127,9 @@ def do_buy(con, j, f, today):
     receipt = (
         f"**Trade #{row['trade_id']} logged — BUY {sym} ×{qty} @ {price}**\n\n"
         f"- signal {sig.d} (grade {sig.grade}, rvol {sig.rvol}x, deliv {sig.deliv_per}% vs {sig.avg_deliv_20}%)\n"
-        f"- stop **{stop}** → risk **₹{risk:,}** — place the GTT now if you haven't\n"
+        f"- stop **{stop}** → risk **₹{risk:,}**"
+        + (" — GTT confirmed ✓\n" if gtt == "yes"
+           else " — ⚠️ **GTT NOT PLACED — this issue stays open until you place it and edit the GTT field to yes**\n")
         + ("" if corridor_ok else
            f"- ⚠️ **corridor breach**: fill is beyond max chase {float(sig.close) * 1.03:.1f} — marked adherent=no\n")
     )

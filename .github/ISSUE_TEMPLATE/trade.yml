@@ -32,6 +32,13 @@ body:
     validations:
       required: true
   - type: dropdown
+    id: gtt
+    attributes:
+      label: GTT stop order placed? (BUY only)
+      description: The stop means nothing until it sits at the broker.
+      options: ["—", "yes", "not yet"]
+      default: 0
+  - type: dropdown
     id: reason
     attributes:
       label: Exit reason (SELL only)
