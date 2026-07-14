@@ -81,7 +81,13 @@ def regime_for(con, d) -> str:
 
 def do_buy(con, j, f, today):
     sym, price, qty = f["symbol"].upper(), float(f["fill price"]), int(f["qty"])
-    open_pos = j[j.exit_price.isna() & (j.symbol == sym)]
+    open_all = j[j.exit_price.isna()]
+    if len(open_all) >= 3:
+        raise Reject(
+            f"Already holding 3 positions ({', '.join(open_all.symbol)}) — the Stage-0 ceiling "
+            "(PLAN.md). Something must close before anything opens."
+        )
+    open_pos = open_all[open_all.symbol == sym]
     if len(open_pos):
         raise Reject(f"Already holding {sym} (trade #{open_pos.iloc[0].trade_id}) — partial adds not supported.")
 

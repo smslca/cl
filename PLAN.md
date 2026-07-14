@@ -11,7 +11,7 @@ Gate numbers are amendable by editing this file — with a git commit as witness
 | what | rule |
 |---|---|
 | Capital | ₹50,000 — frozen |
-| Risk | 1% per trade, 20% max position, 2 positions max |
+| Risk | 1% per trade, 20% max position, **3 positions max** (total open risk ≤ 3%) — amended from 2 on 2026-07-14: learning phase needs samples; hard ceiling, enforced by the trade logger |
 | Metric | trades logged, adherence % (corridor + printed qty + GTT + journaled) |
 | **Gate to Stage 1** | **20 trades with ≥90% adherence** |
 | Reset clause | an unlogged trade or an overridden stop resets the count |
