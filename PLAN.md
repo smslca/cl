@@ -42,6 +42,19 @@ limit (MOREALTY + PHOENIXLTD were one bet), then order-placement automation
 Two years of timestamped, unfalsifiable personal statistics on proven
 infrastructure. Decide then what "big" means. Not before.
 
+## Parking lot — ideas that wait their turn
+
+- **Telegram notifications** (approved, next build): evening push of gradeworthy
+  tickets + daily heartbeat line; missing message = pipeline failure alarm.
+- **Morning conditions check** (idea, unevaluated): a post-open job that reads
+  market conditions and gates the day's entries. Rules for when we revisit:
+  it must be *mechanical and backtestable* (e.g. "skip entries if NIFTY gaps
+  down >X%") — never a vibe check, because a morning gut-veto is fear wearing
+  a process costume. Note before building: the corridor already handles
+  per-stock gaps mechanically, and the backtest found signals in *weak* tape
+  performed fine — the burden of proof is on the filter, tested on the 4,628
+  historical signals like everything else.
+
 ## Standing rules (all stages)
 
 1. No new signal logic without a backtest; no new thresholds without evidence.
