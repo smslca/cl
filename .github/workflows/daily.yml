@@ -28,11 +28,12 @@ jobs:
       - run: python fetch_daily.py
       - name: Self-heal any bhavcopy gaps from dropped runs
         run: python backfill.py --days 7
-      - name: Build dashboard for GitHub Pages
+      - name: Build dashboard and archive for GitHub Pages
         run: |
           python dashboard.py
           mkdir -p docs
           cp out/dashboard.html docs/index.html
+          python history.py
       - name: Commit data and dashboard
         run: |
           git config user.name "market-bot"
