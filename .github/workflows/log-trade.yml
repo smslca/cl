@@ -1,0 +1,56 @@
+# On-demand journal capture: a "Log trade" issue (from the owner only) is
+# parsed into journal/trades.csv, the ledger and tracker are rebuilt, and the
+# issue gets a receipt comment. Invalid entries get the reason and stay open —
+# editing the issue re-triggers the check.
+name: log-trade
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  log:
+    if: >
+      github.event.issue.state == 'open' &&
+      github.event.issue.user.login == 'smslca' &&
+      contains(github.event.issue.labels.*.name, 'trade')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Parse and validate
+        id: log
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          if python log_trade.py > receipt.md; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Rebuild ledger and tracker
+        if: steps.log.outputs.ok == 'true'
+        run: |
+          python dashboard.py
+          cp out/dashboard.html docs/index.html
+          python journal_page.py
+          git config user.name "market-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add journal/ docs/ data/
+          git diff --cached --quiet || git commit -m "journal: trade via issue #${{ github.event.issue.number }}"
+          git push
+      - name: Receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body-file receipt.md
+          if [ "${{ steps.log.outputs.ok }}" = "true" ]; then
+            gh issue close ${{ github.event.issue.number }} --repo ${{ github.repository }}
+          fi

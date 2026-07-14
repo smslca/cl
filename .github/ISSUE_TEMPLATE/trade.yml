@@ -1,0 +1,46 @@
+name: Log trade
+description: Journal a fill — parsed, validated and committed automatically
+title: "[trade]"
+labels: [trade]
+body:
+  - type: dropdown
+    id: action
+    attributes:
+      label: Action
+      options: [BUY, SELL]
+    validations:
+      required: true
+  - type: input
+    id: symbol
+    attributes:
+      label: Symbol
+      placeholder: MANGLMCEM
+    validations:
+      required: true
+  - type: input
+    id: price
+    attributes:
+      label: Fill price
+      placeholder: "936.75"
+    validations:
+      required: true
+  - type: input
+    id: qty
+    attributes:
+      label: Qty
+      placeholder: "10"
+    validations:
+      required: true
+  - type: dropdown
+    id: reason
+    attributes:
+      label: Exit reason (SELL only)
+      options: ["—", stop_hit, sma20_close, time_stop, other]
+      default: 0
+  - type: textarea
+    id: sentence
+    attributes:
+      label: The honest sentence
+      description: Why this trade / how it felt. The journal refuses entries without it.
+    validations:
+      required: true
