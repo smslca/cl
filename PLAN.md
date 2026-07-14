@@ -44,8 +44,14 @@ infrastructure. Decide then what "big" means. Not before.
 
 ## Parking lot — ideas that wait their turn
 
-- **Telegram notifications** (approved, next build): evening push of gradeworthy
-  tickets + daily heartbeat line; missing message = pipeline failure alarm.
+- **Telegram notifications** — ✅ BUILT 2026-07-14 (notify.py, nightly workflow
+  step; heartbeat design: silence = pipeline failure).
+- **Morning gate notification** (approved, later): ~9:20 IST job fetches the
+  NIFTY open, applies the tested gate [−0.2%, +0.5%], pushes "GATE OPEN /
+  CLOSED today" so the 9:15 glance becomes a buzz. Moving parts to solve when
+  built: a second workflow cron at 03:50 UTC (GitHub cron jitter matters more
+  at a precise hour), NSE snapshot API from datacenter IPs in the morning
+  session. Rule itself is already tested — this is delivery only.
 - **Morning conditions check** — PROMOTED TO TESTED RULE 2026-07-14. Trial
   (exp_morning_gate.py, 982 corridor-valid entries): market-open gap outside
   [−0.2%, +0.5%] → 27–46% win, negative mean, on BOTH sides — euphoric opens
