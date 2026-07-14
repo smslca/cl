@@ -1,0 +1,110 @@
+"""Evening Telegram push: weather, gradeworthy tickets, tracker, positions.
+
+Sends one message per run — a heartbeat even on empty days, so a missing
+message means the pipeline failed. Credentials come from env (GitHub secrets
+in CI): TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID. Absent credentials = graceful
+skip, so the workflow never fails on an unconfigured machine.
+
+Setup helper:  TELEGRAM_BOT_TOKEN=<token> python notify.py --setup
+prints your chat_id after you've sent the bot one message.
+"""
+
+import json
+import os
+import pathlib
+import sys
+
+import duckdb
+import pandas as pd
+import requests
+
+from dashboard import regime_verdict
+from metrics import FEATURES_SQL
+
+ROOT = pathlib.Path(__file__).resolve().parent
+API = "https://api.telegram.org/bot{token}/{method}"
+
+
+def setup(token: str) -> None:
+    r = requests.get(API.format(token=token, method="getUpdates"), timeout=30).json()
+    chats = {u["message"]["chat"]["id"]: u["message"]["chat"].get("first_name", "?")
+             for u in r.get("result", []) if "message" in u}
+    if not chats:
+        print("no messages yet — open Telegram, send your bot any message, rerun")
+        return
+    for cid, name in chats.items():
+        print(f"chat_id: {cid}  ({name})")
+
+
+def build_message() -> str:
+    con = duckdb.connect()
+    con.execute(f"CREATE TEMP VIEW f AS {FEATURES_SQL}")
+    breadth = con.execute("""
+        SELECT d,
+            round(100.0 * sum(CASE WHEN close > sma20 THEN 1 ELSE 0 END) / count(*), 1) AS pct20,
+            round(100.0 * sum(CASE WHEN close > sma50 THEN 1 ELSE 0 END) / count(*), 1) AS pct50,
+            sum(CASE WHEN close > prev_close THEN 1 ELSE 0 END) AS advances,
+            sum(CASE WHEN close < prev_close THEN 1 ELSE 0 END) AS declines
+        FROM f WHERE history_days >= 50 GROUP BY d ORDER BY d
+    """).df()
+    verdict, _, vrule = regime_verdict(breadth)
+    day = pd.Timestamp(breadth.iloc[-1].d).date()
+
+    snap_path = ROOT / "data" / "shortlists" / f"{day}.csv"
+    risk_cfg = json.loads((ROOT / "config" / "risk.json").read_text())
+    risk_amt = risk_cfg["capital_inr"] * risk_cfg["risk_per_trade_pct"] / 100
+    max_pos = risk_cfg["capital_inr"] * risk_cfg["max_position_pct"] / 100
+
+    lines = [f"📈 <b>{day} — {verdict}</b>", vrule,
+             "9:15 gate: no entries if NIFTY opens &lt; −0.2% or &gt; +0.5%", ""]
+
+    if snap_path.exists():
+        sl = pd.read_csv(snap_path)
+        top = sl[sl.grade.isin(["A+", "A"])]
+        if len(top):
+            lines.append(f"<b>Tickets ({len(top)}):</b>")
+            for r in top.itertuples():
+                risk_ps = r.close - r.sig_low
+                qty = int(min(risk_amt / risk_ps, max_pos / r.close)) if risk_ps / r.close <= 0.08 else 0
+                qty_s = f"qty {qty}" if qty >= 1 else "skip (stop too wide / price too big)"
+                lines.append(
+                    f"<b>{r.grade} {r.symbol}</b> — entry {r.close} · ≤{r.close * 1.03:.1f} · "
+                    f"stop {r.sig_low} · {qty_s} · ₹{risk_ps * max(qty, 0):.0f} risk"
+                )
+            b = len(sl) - len(top)
+            if b:
+                lines.append(f"(+{b} B-grade on the page)")
+        else:
+            lines.append("No A-grade tickets today. Do-nothing day.")
+    else:
+        lines.append("No shortlist snapshot for today.")
+
+    j = pd.read_csv(ROOT / "journal" / "trades.csv")
+    n_open = int(j.exit_price.isna().sum())
+    adher = 100.0 * (j.adherent.fillna("yes") == "yes").mean() if len(j) else 100.0
+    lines += ["", f"Tracker {len(j)}/20 · adherence {adher:.0f}% · {n_open}/3 positions",
+              "smslca.github.io/cl"]
+    return "\n".join(lines)
+
+
+def main() -> None:
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    if "--setup" in sys.argv:
+        setup(token)
+        return
+    chat = os.environ.get("TELEGRAM_CHAT_ID", "")
+    if not token or not chat:
+        print("telegram not configured (missing token/chat id) — skipping")
+        return
+    msg = build_message()
+    r = requests.post(
+        API.format(token=token, method="sendMessage"),
+        json={"chat_id": chat, "text": msg, "parse_mode": "HTML", "disable_web_page_preview": True},
+        timeout=30,
+    )
+    r.raise_for_status()
+    print("telegram: sent")
+
+
+if __name__ == "__main__":
+    main()

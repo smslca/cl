@@ -35,6 +35,11 @@ jobs:
           cp out/dashboard.html docs/index.html
           python history.py
           python journal_page.py
+      - name: Telegram notification
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python notify.py
       - name: Commit data and dashboard
         run: |
           git config user.name "market-bot"
