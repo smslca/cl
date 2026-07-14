@@ -1,0 +1,9 @@
+# Morning gate worker — deploy with `npx wrangler deploy` from this directory.
+name = "market-gate"
+main = "worker.js"
+compatibility_date = "2026-07-01"
+
+[triggers]
+# 03:46 UTC = 9:16 IST (IST has no DST, offset never drifts), Mon–Fri.
+# NSE holidays are handled in the worker: no fresh session → holiday note.
+crons = ["46 3 * * 1-5"]
