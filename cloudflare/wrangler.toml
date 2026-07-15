@@ -4,6 +4,7 @@ main = "worker.js"
 compatibility_date = "2026-07-01"
 
 [triggers]
-# 03:46 UTC = 9:16 IST (IST has no DST, offset never drifts), Mon–Fri.
+# 04:00 UTC = 9:30 IST (IST has no DST, offset never drifts), Mon–Fri.
+# 15 min after open: even a delayed Yahoo feed has the 9:15 bar by then.
 # NSE holidays are handled in the worker: no fresh session → holiday note.
-crons = ["46 3 * * 1-5"]
+crons = ["0 4 * * 1-5"]
