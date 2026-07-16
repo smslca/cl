@@ -21,16 +21,16 @@
 </style></head><body>
 <header>
  <b>Market story — archive</b>
- <button id="daybtn" onclick="document.getElementById('cal').classList.toggle('open')">2026-07-15 ▾</button>
+ <button id="daybtn" onclick="document.getElementById('cal').classList.toggle('open')">2026-07-16 ▾</button>
  <a href="../index.html" style="font-size:13px">← live dashboard</a>
  <a href="../journal.html" style="font-size:13px">ledger →</a>
  <div id="cal"></div>
  <span class="muted">green = report exists · regenerated as-of that date (history-length gates count later days too;
  the true as-shown record is data/shortlists/)</span>
 </header>
-<iframe id="r" src="report_2026-07-15.html"></iframe>
+<iframe id="r" src="report_2026-07-16.html"></iframe>
 <script>
-const DATES = ["2026-07-03", "2026-07-06", "2026-07-07", "2026-07-08", "2026-07-09", "2026-07-10", "2026-07-13", "2026-07-14", "2026-07-15"];
+const DATES = ["2026-07-03", "2026-07-06", "2026-07-07", "2026-07-08", "2026-07-09", "2026-07-10", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16"];
 const avail = new Set(DATES);
 let selected = DATES[DATES.length - 1];
 let view = new Date(selected + "T00:00:00");
