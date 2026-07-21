@@ -110,6 +110,8 @@ def main() -> None:
         json={"chat_id": chat, "text": msg, "parse_mode": "HTML", "disable_web_page_preview": True},
         timeout=30,
     )
+    if not r.ok:
+        print(f"telegram error {r.status_code}: {r.text}", file=sys.stderr)
     r.raise_for_status()
     print("telegram: sent")
 
