@@ -1,0 +1,5 @@
+symbol,sectors,close,ret_30d,rs_rank,rvol,deliv_per,avg_deliv_20,pct_of_52wk_high,ext_pct,sig_low,accum_5,in_priority,is_new,grade,d
+SUNDRMFAST,—,946.45,14.0,0.86,6.2,92.8,62.6,88.0,0.0,927.6,1.0,0,0,B,2026-07-23
+MEDANTA,Healthcare,1378.2,12.5,0.83,4.48,62.2,54.2,95.0,3.0,1350.7,1.0,0,0,B,2026-07-23
+ASKAUTOLTD,Automobile and Auto Components,502.95,17.5,0.9,1.73,55.9,51.7,87.0,7.0,483.05,2.0,0,0,B,2026-07-23
+SREEL,—,222.71,13.0,0.84,1.62,84.2,67.8,86.0,4.0,220.22,2.0,0,0,B,2026-07-23
