@@ -246,7 +246,7 @@ def regime_verdict(breadth: pd.DataFrame) -> tuple[str, str, str]:
     if now.pct20 >= 55 and rising:
         return ("GOOD", "#1D9E75", "breadth ≥ 55% and rising — normal position sizing")
     if now.pct20 < 45 and not rising:
-        return ("WEAK", "#D85A30", "breadth < 45% and falling — reduce exposure, smaller size")
+        return ("WEAK", "#D85A30", "breadth &lt; 45% and falling — reduce exposure, smaller size")
     return ("MIXED", "#BA7517", "be selective — lean on the shortlist, not conviction")
 
 
