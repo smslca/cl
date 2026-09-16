@@ -1,0 +1,4 @@
+symbol,sectors,close,ret_30d,rs_rank,rvol,deliv_per,avg_deliv_20,pct_of_52wk_high,ext_pct,sig_low,accum_5,in_priority,is_new,grade,d
+DIVISLAB,"NIFTY HEALTHCARE, NIFTY PHARMA",9158.0,9.3,0.87,1.84,69.3,60.4,95.0,1.0,8923.0,3.0,0,0,A,2026-09-16
+DYNAMATECH,NIFTY IND DEFENCE,12077.0,12.3,0.9,1.67,42.1,39.9,94.0,3.0,11500.0,3.0,0,0,A,2026-09-16
+ADROITINFO,—,11.2,13.7,0.9,1.94,89.6,73.9,92.0,7.0,10.64,1.0,0,0,B,2026-09-16
