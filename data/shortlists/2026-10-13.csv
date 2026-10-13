@@ -1,0 +1,5 @@
+symbol,sectors,close,ret_30d,rs_rank,rvol,deliv_per,avg_deliv_20,pct_of_52wk_high,ext_pct,sig_low,accum_5,in_priority,is_new,grade,d
+SANATHAN,—,533.4,19.0,0.95,2.96,70.9,54.9,97.0,6.0,520.05,4.0,0,1,A,2026-10-13
+PERSISTENT,NIFTY IT,5988.0,1.9,0.81,2.18,40.6,39.9,91.0,10.0,5787.0,3.0,0,0,A,2026-10-13
+BHEL,"NIFTY ENERGY, NIFTY PSE, NIFTY RAILWAYSPSU",442.35,2.7,0.82,1.71,44.7,43.3,97.0,4.0,426.15,2.0,0,0,B,2026-10-13
+SKYGOLD,Consumer Durables,978.25,20.6,0.96,1.51,49.5,49.4,98.0,17.0,950.5,2.0,0,1,B,2026-10-13
